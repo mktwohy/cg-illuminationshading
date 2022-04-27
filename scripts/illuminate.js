@@ -3,9 +3,12 @@ const {mat4, vec2, vec3, vec4} = glMatrix;
 class GlApp {
     constructor(canvas_id, width, height, scene) {
         // initialize <canvas> with a WebGL 2 context
+        /** @type {CanvasRenderingContext2D} */
         this.canvas = document.getElementById(canvas_id);
         this.canvas.width = width;
         this.canvas.height = height;
+
+        /** @type {WebGL2RenderingContext} */
         this.gl = this.canvas.getContext('webgl2');
         if (!this.gl) {
             alert('Unable to initialize WebGL 2. Your browser may not support it.');
@@ -161,6 +164,7 @@ class GlApp {
             //
             let selected_shader = 'emissive';
             this.gl.useProgram(this.shader[selected_shader].program);
+
 
             // transform model to proper position, size, and orientation
             glMatrix.mat4.identity(this.model_matrix);
