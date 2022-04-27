@@ -160,11 +160,12 @@ class GlApp {
             if (this.vertex_array[this.scene.models[i].type] == null) continue;
             
             //
-            // TODO: properly select shader here
+            // TODO: properly select shader here (RN ITS HARDCODED)
             //
-            let selected_shader = 'emissive';
-            this.gl.useProgram(this.shader[selected_shader].program);
 
+            let selected_shader = 'gouraud_color';
+            // let selected_shader = 'emissive';
+            this.gl.useProgram(this.shader[selected_shader].program);
 
             // transform model to proper position, size, and orientation
             glMatrix.mat4.identity(this.model_matrix);
