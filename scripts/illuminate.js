@@ -164,6 +164,7 @@ class GlApp {
             //
 
             let selected_shader = 'gouraud_color';
+            // let selected_shader = 'phong_color';
             // let selected_shader = 'emissive';
             this.gl.useProgram(this.shader[selected_shader].program);
 
