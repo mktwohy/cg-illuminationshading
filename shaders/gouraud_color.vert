@@ -29,7 +29,7 @@ void main() {
     vec3 l = normalize(light_position - new_normal);
 
     vec3 r = 2.0 * (max(dot(n,l), 0.0)) * (n-l);
-    vec3 v = normalize(camera_position - new_position.xyz);
+    vec3 v = normalize(camera_position - new_position_xyz);
 
 
     ambient = light_ambient * material_shininess;
