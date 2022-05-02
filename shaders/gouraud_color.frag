@@ -12,5 +12,11 @@ uniform vec3 material_specular; // Ks
 out vec4 FragColor;
 
 void main() {
-    FragColor = vec4(material_color, 1.0);
+    vec3 ambient_light = ambient * material_color;
+    vec3 diffuse_light = diffuse * material_color;
+    vec3 specular_light = specular * material_specular; 
+
+    vec3 result = ambient_light + diffuse_light + specular_light;
+    FragColor = vec4(result, 1.0);
+
 }
