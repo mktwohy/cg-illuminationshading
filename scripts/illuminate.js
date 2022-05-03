@@ -125,6 +125,24 @@ class GlApp {
         this.render();
     }
 
+    createDefaultTexture() {
+        let texture = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, texture)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR) // or gl.NEAREST
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE) // or gl.NEAS
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE)
+        let pixels = [              // hint, use Google: colorpicker
+            255, 255, 255, 255,     // white
+            255,   0,   0, 255,     // red
+            128, 128, 128, 255,     // teal
+            0,   0,   0, 255      // black
+        ]
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 2, 2, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array(pixels))
+        this.gl.bindTexture(this.gl.TEXTURE_2D, null)
+        return texture
+    }
+
     initializeTexture(image_url) {
         // create a texture, and upload a temporary 1px white RGBA array [255,255,255,255]
         let texture = this.gl.createTexture();
@@ -178,10 +196,15 @@ class GlApp {
 
             //
             // TODO: bind proper texture and set uniform (if shader is a textured one)
+            // doesn't work:
+            // let texture = this.createDefaultTexture()
             // this.gl.activeTexture(this.gl.TEXTURE0)
-            // this.gl.bindTexture(this.gl.TEXTURE_2D, model.material)
+            // this.gl.bindTexture(this.gl.TEXTURE_2D, texture)
+            // this.gl.uniform1i(selected_shader.uniforms.material_color, 0)
+            // this.gl.bindTexture(this.gl.TEXTURE_2D, null)
 
-            //
+
+
 
             this.gl.bindVertexArray(this.vertex_array[model.type]);
             this.gl.drawElements(this.gl.TRIANGLES, this.vertex_array[model.type].face_index_count, this.gl.UNSIGNED_SHORT, 0);
