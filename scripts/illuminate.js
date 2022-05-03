@@ -1,9 +1,9 @@
 const {mat4, vec2, vec3, vec4} = glMatrix;
 const color = {
-    white:  [1.0, 1.0, 1.0, 1.0],
-    red:    [1.0, 0.0, 0.0, 1.0],
-    green:  [0.0, 1.0, 0.0, 1.0],
-    blue:   [0.0, 0.0, 1.0, 1.0],
+    white:  vec3.fromValues(1.0, 1.0, 1.0, 1.0),
+    red:    vec3.fromValues(1.0, 0.0, 0.0, 1.0),
+    green:  vec3.fromValues(0.0, 1.0, 0.0, 1.0),
+    blue:   vec3.fromValues(0.0, 0.0, 1.0, 1.0),
 }
 
 class GlApp {
@@ -131,6 +131,10 @@ class GlApp {
         this.render();
     }
 
+    createVertexColorArray(vertexArray) {
+
+    }
+
     createDefaultTexture() {
         let texture = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture)
@@ -179,13 +183,15 @@ class GlApp {
         // delete previous frame (reset both framebuffer and z-buffer)
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
+        let color_shader = this.getActiveColorShader()
+        let texture_shader = this.getActiveTextureShader()
+        let light_shader = this.getEmissiveShader()
+
         // draw all models
         for (let model of this.scene.models) {
             if (this.vertex_array[model.type] == null) continue;
 
-            let selected_shader = this.shader[this.algorithm + "_color"]
-
-            this.gl.useProgram(selected_shader.program);
+            this.gl.useProgram(color_shader.program);
 
             // transform model to proper position, size, and orientation
             glMatrix.mat4.identity(this.model_matrix);
@@ -195,10 +201,10 @@ class GlApp {
             glMatrix.mat4.rotateX(this.model_matrix, this.model_matrix, model.rotate_x);
             glMatrix.mat4.scale(this.model_matrix, this.model_matrix, model.size);
 
-            this.gl.uniform3fv(selected_shader.uniforms.material_color, model.material.color);
-            this.gl.uniformMatrix4fv(selected_shader.uniforms.projection_matrix, false, this.projection_matrix);
-            this.gl.uniformMatrix4fv(selected_shader.uniforms.view_matrix, false, this.view_matrix);
-            this.gl.uniformMatrix4fv(selected_shader.uniforms.model_matrix, false, this.model_matrix);
+            this.gl.uniform3fv(color_shader.uniforms.material_color, model.material.color);
+            this.gl.uniformMatrix4fv(color_shader.uniforms.projection_matrix, false, this.projection_matrix);
+            this.gl.uniformMatrix4fv(color_shader.uniforms.view_matrix, false, this.view_matrix);
+            this.gl.uniformMatrix4fv(color_shader.uniforms.model_matrix, false, this.model_matrix);
 
             //
             // TODO: bind proper texture and set uniform (if shader is a textured one)
@@ -206,7 +212,7 @@ class GlApp {
             // let texture = this.createDefaultTexture()
             // this.gl.activeTexture(this.gl.TEXTURE0)
             // this.gl.bindTexture(this.gl.TEXTURE_2D, texture)
-            // this.gl.uniform1i(selected_shader.uniforms.material_color, 0)
+            // this.gl.uniform1i(color_shader.uniforms.material_color, 0)
             // this.gl.bindTexture(this.gl.TEXTURE_2D, null)
 
 
@@ -219,19 +225,17 @@ class GlApp {
 
         // draw all light sources
         for (let point_light of this.scene.light.point_lights) {
-            let shader = this.shader['emissive']
-
-            this.gl.useProgram(shader.program);
+            this.gl.useProgram(light_shader.program);
 
             glMatrix.mat4.identity(this.model_matrix);
             glMatrix.mat4.translate(this.model_matrix, this.model_matrix, point_light.position);
             glMatrix.mat4.scale(this.model_matrix, this.model_matrix, glMatrix.vec3.fromValues(0.1, 0.1, 0.1));
 
 
-            this.gl.uniform3fv(shader.uniforms.material_color, point_light.color);
-            this.gl.uniformMatrix4fv(shader.uniforms.projection_matrix, false, this.projection_matrix);
-            this.gl.uniformMatrix4fv(shader.uniforms.view_matrix, false, this.view_matrix);
-            this.gl.uniformMatrix4fv(shader.uniforms.model_matrix, false, this.model_matrix);
+            this.gl.uniform3fv(light_shader.uniforms.material_color, point_light.color);
+            this.gl.uniformMatrix4fv(light_shader.uniforms.projection_matrix, false, this.projection_matrix);
+            this.gl.uniformMatrix4fv(light_shader.uniforms.view_matrix, false, this.view_matrix);
+            this.gl.uniformMatrix4fv(light_shader.uniforms.model_matrix, false, this.model_matrix);
 
             this.gl.bindVertexArray(this.vertex_array['sphere']);
             this.gl.drawElements(this.gl.TRIANGLES, this.vertex_array['sphere'].face_index_count, this.gl.UNSIGNED_SHORT, 0);
@@ -262,6 +266,18 @@ class GlApp {
 
         // render scene
         this.render();
+    }
+
+    getActiveColorShader() {
+        return this.shader[this.algorithm + "_color"]
+    }
+
+    getActiveTextureShader() {
+        return this.shader[this.algorithm + "_color"]
+    }
+
+    getEmissiveShader() {
+        return this.shader['emissive']
     }
 
     getFile(url) {
