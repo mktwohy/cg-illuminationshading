@@ -3,7 +3,7 @@ const {mat4, vec2, vec3, vec4} = glMatrix;
 class GlApp {
     constructor(canvas_id, width, height, scene) {
         // initialize <canvas> with a WebGL 2 context
-        /** @type {CanvasRenderingContext2D} */
+        /** @type {HTMLCanvasElement} */
         this.canvas = document.getElementById(canvas_id);
         this.canvas.width = width;
         this.canvas.height = height;
