@@ -27,7 +27,7 @@ void main() {
     gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex_position, 1.0);
 
     vec3 world_vertex_normal = mat3(transpose(inverse(model_matrix))) * vertex_normal;
-    vec3 world_vertex_position = (model_matrix * vec4(vertex_position, 1.0)).xyz;
+    vec3 world_vertex_position = mat3(model_matrix) * vertex_position;
 
     vec3 N = normalize(world_vertex_normal);                          // normalized surface normal
     vec3 L = normalize(light_position - world_vertex_position);         // normalized light direction
