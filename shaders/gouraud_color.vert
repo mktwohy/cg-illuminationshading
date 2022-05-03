@@ -5,7 +5,7 @@ precision highp float;
 in vec3 vertex_position;
 in vec3 vertex_normal;
 
-uniform vec3 light_ambient;
+uniform vec3 light_ambient;     // Ia
 uniform vec3 light_position;
 uniform vec3 light_color;       // Ip
 uniform vec3 camera_position;
@@ -26,19 +26,18 @@ float dotPositive(vec3 x, vec3 y) {
 void main() {
     gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex_position, 1.0);
 
-    vec3 new_normal = normalize(mat3(transpose(inverse(model_matrix))) * vertex_normal);
-    vec4 new_position = model_matrix * vec4(vertex_position, 1.0);
-    vec3 new_position_xyz = new_position.xyz;
+    vec3 world_vertex_normal = mat3(transpose(inverse(model_matrix))) * vertex_normal;
+    vec3 world_vertex_position = (model_matrix * vec4(vertex_position, 1.0)).xyz;
 
-    vec3 n = normalize(new_normal);
-    vec3 l = normalize(light_position - new_normal);
+    vec3 N = normalize(world_vertex_normal);                          // normalized surface normal
+    vec3 L = normalize(light_position - world_vertex_position);         // normalized light direction
 
-    vec3 r = (2.0 * dotPositive(n, l) * n) - l;
-    vec3 v = normalize(camera_position - new_position_xyz);
+    vec3 R = normalize((2.0 * dotPositive(N, L) * N) - L);          // normalized reflected light direction
+    vec3 V = normalize(camera_position - world_vertex_position);  // normalized view direction
 
 
-    ambient = light_ambient * material_shininess;
-    diffuse = light_color * material_shininess * dotPositive(n,l);
-    specular = light_color * material_shininess * pow(dotPositive(r,v), material_shininess);
+    ambient = light_ambient;
+    diffuse = light_color * dotPositive(N,L);
+    specular = light_color * material_shininess * pow(dotPositive(R,V), material_shininess);
 }
 
