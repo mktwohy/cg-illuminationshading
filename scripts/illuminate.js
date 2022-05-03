@@ -1,4 +1,10 @@
 const {mat4, vec2, vec3, vec4} = glMatrix;
+const color = {
+    white:  [1.0, 1.0, 1.0, 1.0],
+    red:    [1.0, 0.0, 0.0, 1.0],
+    green:  [0.0, 1.0, 0.0, 1.0],
+    blue:   [0.0, 0.0, 1.0, 1.0],
+}
 
 class GlApp {
     constructor(canvas_id, width, height, scene) {
