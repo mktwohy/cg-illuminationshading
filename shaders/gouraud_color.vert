@@ -37,7 +37,7 @@ void main() {
 
 
     ambient = light_ambient;
-    diffuse = light_color * dotPositive(N,L);
-    specular = light_color * material_shininess * pow(dotPositive(R,V), material_shininess);
+    diffuse = light_color * dotPositive(N, L);
+    specular = light_color * pow(dotPositive(R,V), material_shininess);
 }
 
