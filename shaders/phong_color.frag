@@ -29,7 +29,7 @@ void main() {
 
     vec3 ambient = light_ambient * material_color;
     vec3 diffuse = light_color *  material_color * dotPositive(N, L);
-    vec3 specular = light_color * pow(dotPositive(R,V), material_shininess) * material_shininess;
+    vec3 specular = light_color * material_specular * pow(dotPositive(R,V), material_shininess);
 
     vec3 result = ambient + diffuse + specular;
 
