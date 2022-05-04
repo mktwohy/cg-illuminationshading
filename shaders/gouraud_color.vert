@@ -34,7 +34,7 @@ void main() {
     vec3 N = normalize(world_vertex_normal);                          // normalized surface normal
     vec3 L = normalize(light_position - world_vertex_position);         // normalized light direction // i swapped order of subtraction
 
-    vec3 R = normalize(2.0 * dotPositive(N, L) * N - L);          // normalized reflected light direction
+    vec3 R = normalize(-(reflect(L,N)));          // normalized reflected light direction
     vec3 V = normalize(camera_position - world_vertex_position);  // normalized view direction // i swapped order of subtraction
 
 

@@ -31,7 +31,7 @@ void main() {
     vec3 N = normalize(frag_normal);                          // normalized surface normal
     vec3 L = normalize(light_position - frag_pos);         // normalized light direction // i swapped order of subtraction
 
-    vec3 R = normalize(2.0 * dotPositive(N, L) * N - L);          // normalized reflected light direction
+    vec3 R = normalize(-(reflect(L,N)));          // normalized reflected light direction
     vec3 V = normalize(camera_position - frag_pos);  // normalized view direction // i swapped order of subtraction
 
     ambient = light_ambient * material_color;
