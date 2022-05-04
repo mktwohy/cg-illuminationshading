@@ -131,10 +131,6 @@ class GlApp {
         this.render();
     }
 
-    createVertexColorArray(vertexArray) {
-
-    }
-
     createDefaultTexture() {
         let texture = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture)
@@ -201,12 +197,19 @@ class GlApp {
             glMatrix.mat4.rotateX(this.model_matrix, this.model_matrix, model.rotate_x);
             glMatrix.mat4.scale(this.model_matrix, this.model_matrix, model.size);
 
-            this.gl.uniform3fv(color_shader.uniforms.material_color, model.material.color);
-            this.gl.uniformMatrix4fv(color_shader.uniforms.projection_matrix, false, this.projection_matrix);
-            this.gl.uniformMatrix4fv(color_shader.uniforms.view_matrix, false, this.view_matrix);
-            this.gl.uniformMatrix4fv(color_shader.uniforms.model_matrix, false, this.model_matrix);
+            // upload vert uniforms to GPU
+            let point_light = this.scene.light.point_lights[0]  // this is temporary and arbitrary; maybe loop through all point lights?
+            this.gl.uniform3fv(color_shader.uniforms.light_ambient, this.scene.light.ambient);
+            this.gl.uniform3fv(color_shader.uniforms.light_position, point_light.position);
+            this.gl.uniform3fv(color_shader.uniforms.light_color, point_light.color);
+            this.gl.uniform3fv(color_shader.uniforms.camera_position, this.scene.camera.position);
+            this.gl.uniform1f(color_shader.uniforms.material_shininess, model.material.shininess);
+            this.uploadMatrixUniforms(color_shader)
 
-            //
+            // upload frag uniforms to GPU
+            this.gl.uniform3fv(color_shader.uniforms.material_color, model.material.color);
+            this.gl.uniform3fv(color_shader.uniforms.material_specular, model.material.specular);
+
             // TODO: bind proper texture and set uniform (if shader is a textured one)
             // doesn't work:
             // let texture = this.createDefaultTexture()
@@ -215,9 +218,7 @@ class GlApp {
             // this.gl.uniform1i(color_shader.uniforms.material_color, 0)
             // this.gl.bindTexture(this.gl.TEXTURE_2D, null)
 
-
-
-
+            // draw vertices
             this.gl.bindVertexArray(this.vertex_array[model.type]);
             this.gl.drawElements(this.gl.TRIANGLES, this.vertex_array[model.type].face_index_count, this.gl.UNSIGNED_SHORT, 0);
             this.gl.bindVertexArray(null);
@@ -231,16 +232,24 @@ class GlApp {
             glMatrix.mat4.translate(this.model_matrix, this.model_matrix, point_light.position);
             glMatrix.mat4.scale(this.model_matrix, this.model_matrix, glMatrix.vec3.fromValues(0.1, 0.1, 0.1));
 
+            // upload vert uniforms to GPU
+            this.uploadMatrixUniforms(light_shader)
 
+            // upload frag uniforms to GPU
             this.gl.uniform3fv(light_shader.uniforms.material_color, point_light.color);
-            this.gl.uniformMatrix4fv(light_shader.uniforms.projection_matrix, false, this.projection_matrix);
-            this.gl.uniformMatrix4fv(light_shader.uniforms.view_matrix, false, this.view_matrix);
-            this.gl.uniformMatrix4fv(light_shader.uniforms.model_matrix, false, this.model_matrix);
 
+            // draw vertices
             this.gl.bindVertexArray(this.vertex_array['sphere']);
             this.gl.drawElements(this.gl.TRIANGLES, this.vertex_array['sphere'].face_index_count, this.gl.UNSIGNED_SHORT, 0);
             this.gl.bindVertexArray(null);
         }
+    }
+
+    /** Note - must be called inside a gl.useProgram() block */
+    uploadMatrixUniforms(shader) {
+        this.gl.uniformMatrix4fv(shader.uniforms.projection_matrix, false, this.projection_matrix);
+        this.gl.uniformMatrix4fv(shader.uniforms.view_matrix, false, this.view_matrix);
+        this.gl.uniformMatrix4fv(shader.uniforms.model_matrix, false, this.model_matrix);
     }
 
     updateScene(scene) {
