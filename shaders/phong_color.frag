@@ -21,8 +21,6 @@ float dotPositive(vec3 x, vec3 y) {
 }
 
 void main() {
-
-
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -39,8 +37,7 @@ void main() {
     specular = light_color * pow(dotPositive(R,V), material_shininess) * material_shininess;
 
 
-
     vec3 result = ambient + diffuse + specular;
-    
+
     FragColor = vec4(result, 1.0);
 }
