@@ -18,7 +18,5 @@ void main() {
     frag_normal = normalize(frag_normal); // normalize frag_normal
     frag_normal = mat3(transpose(inverse(model_matrix))) * vertex_normal; // inverse transpose similar to gouraud
 
-    vec4 frag_position_w = model_matrix * vec4(vertex_position, 1.0);
-    
-    frag_pos = frag_position_w.xyz; // set frag_pos to only xyz of frag_position
+    frag_pos = (model_matrix * vec4(vertex_position, 1.0)).xyz;
 }

@@ -21,26 +21,17 @@ float dotPositive(vec3 x, vec3 y) {
 }
 
 void main() {
+    vec3 N = normalize(frag_normal);                        // normalized surface normal
+    vec3 L = normalize(light_position - frag_pos);          // normalized light direction
 
+    vec3 R = normalize(2.0 * dotPositive(N, L) * N - L);    // normalized reflected light direction
+    vec3 V = normalize(camera_position - frag_pos);         // normalized view direction
 
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    
-
-    vec3 N = normalize(frag_normal);                          // normalized surface normal
-    vec3 L = normalize(light_position - frag_pos);         // normalized light direction // i swapped order of subtraction
-
-    vec3 R = normalize(2.0 * dotPositive(N, L) * N - L);          // normalized reflected light direction
-    vec3 V = normalize(camera_position - frag_pos);  // normalized view direction // i swapped order of subtraction
-
-    ambient = light_ambient * material_color;
-    diffuse = light_color *  material_color * dotPositive(N, L);
-    specular = light_color * pow(dotPositive(R,V), material_shininess) * material_shininess;
-
-
+    vec3 ambient = light_ambient * material_color;
+    vec3 diffuse = light_color *  material_color * dotPositive(N, L);
+    vec3 specular = light_color * pow(dotPositive(R,V), material_shininess) * material_shininess;
 
     vec3 result = ambient + diffuse + specular;
-    
+
     FragColor = vec4(result, 1.0);
 }
