@@ -1,9 +1,9 @@
 const {mat4, vec2, vec3, vec4} = glMatrix;
 const color = {
-    white:  vec3.fromValues(1.0, 1.0, 1.0, 1.0),
-    red:    vec3.fromValues(1.0, 0.0, 0.0, 1.0),
-    green:  vec3.fromValues(0.0, 1.0, 0.0, 1.0),
-    blue:   vec3.fromValues(0.0, 0.0, 1.0, 1.0),
+    white:  [255, 255, 255, 255],
+    red:    [255, 0,   0,   255],
+    green:  [0,   255, 0,   255],
+    blue:   [0,   0,   255, 255],
 }
 
 class GlApp {
@@ -132,18 +132,20 @@ class GlApp {
     }
 
     createDefaultTexture() {
+        // (from PowerPoint 14 slide 9)
         let texture = this.gl.createTexture();
+
+        // TEXTURE_2D = texture
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture)
+
+        // TEXTURE_2D.parameter = value
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR) // or gl.NEAREST
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR)
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE) // or gl.NEAS
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE)
-        let pixels = [              // hint, use Google: colorpicker
-            255, 255, 255, 255,     // white
-            255,   0,   0, 255,     // red
-            128, 128, 128, 255,     // teal
-            0,   0,   0, 255      // black
-        ]
+
+        // TEXTURE_2D.image = pixels
+        let pixels = [color.red, color.green, color.blue, color.white].flat()
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 2, 2, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array(pixels))
         this.gl.bindTexture(this.gl.TEXTURE_2D, null)
         return texture
@@ -211,12 +213,8 @@ class GlApp {
             this.gl.uniform3fv(color_shader.uniforms.material_specular, model.material.specular);
 
             // TODO: bind proper texture and set uniform (if shader is a textured one)
-            // doesn't work:
-            // let texture = this.createDefaultTexture()
-            // this.gl.activeTexture(this.gl.TEXTURE0)
-            // this.gl.bindTexture(this.gl.TEXTURE_2D, texture)
-            // this.gl.uniform1i(color_shader.uniforms.material_color, 0)
-            // this.gl.bindTexture(this.gl.TEXTURE_2D, null)
+            let tex_id = this.createDefaultTexture()
+
 
             // draw vertices
             this.gl.bindVertexArray(this.vertex_array[model.type]);
