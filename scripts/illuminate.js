@@ -181,15 +181,13 @@ class GlApp {
         // delete previous frame (reset both framebuffer and z-buffer)
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-        let color_shader = this.getActiveColorShader()
-        let texture_shader = this.getActiveTextureShader()
-        let light_shader = this.getEmissiveShader()
+        let color_shader    = this.getSelectedColorShader()
+        let texture_shader  = this.getSelectedTextureShader()
+        let light_shader    = this.getEmissiveShader()
 
         // draw all models
         for (let model of this.scene.models) {
             if (this.vertex_array[model.type] == null) continue;
-
-            this.gl.useProgram(color_shader.program);
 
             // transform model to proper position, size, and orientation
             glMatrix.mat4.identity(this.model_matrix);
@@ -199,25 +197,23 @@ class GlApp {
             glMatrix.mat4.rotateX(this.model_matrix, this.model_matrix, model.rotate_x);
             glMatrix.mat4.scale(this.model_matrix, this.model_matrix, model.size);
 
-            // upload vert uniforms to GPU
-            let point_light = this.scene.light.point_lights[0]  // this is temporary and arbitrary; maybe loop through all point lights?
-            this.gl.uniform3fv(color_shader.uniforms.light_ambient, this.scene.light.ambient);
-            this.gl.uniform3fv(color_shader.uniforms.light_position, point_light.position);
-            this.gl.uniform3fv(color_shader.uniforms.light_color, point_light.color);
-            this.gl.uniform3fv(color_shader.uniforms.camera_position, this.scene.camera.position);
-            this.gl.uniform1f(color_shader.uniforms.material_shininess, model.material.shininess);
+            this.gl.useProgram(color_shader.program);
+
+            // upload uniforms to GPU
+            this.uploadLightCameraUniforms(color_shader)
+            this.uploadMaterialUniforms(color_shader, model)
             this.uploadMatrixUniforms(color_shader)
 
-            // upload frag uniforms to GPU
-            this.gl.uniform3fv(color_shader.uniforms.material_color, model.material.color);
-            this.gl.uniform3fv(color_shader.uniforms.material_specular, model.material.specular);
+            this.gl.useProgram(texture_shader.program)
 
-            // TODO: bind proper texture and set uniform (if shader is a textured one)
-            let tex_id = this.createDefaultTexture()
-            this.gl.activeTexture(this.gl.TEXTURE0)
-            this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)
-            this.gl.uniform1i(texture_shader.uniforms.image, 0) // image uniform reference texture slot 0
+            // bind proper texture and set uniform (if shader is a textured one)
+            let tex_id = this.createDefaultTexture()                // tex_id = handle to default texture
+            this.gl.activeTexture(this.gl.TEXTURE0)                 // active texture = slot 0
+            this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)         // TEXTURE_2D (active texture) = tex_id
+            this.gl.uniform1i(texture_shader.uniforms.image, 0)  // uniform.image = slot 0
             this.gl.bindTexture(this.gl.TEXTURE_2D, null)
+
+            this.gl.useProgram(color_shader.program)
 
             // draw vertices
             this.gl.bindVertexArray(this.vertex_array[model.type]);
@@ -253,6 +249,20 @@ class GlApp {
         this.gl.uniformMatrix4fv(shader.uniforms.model_matrix, false, this.model_matrix);
     }
 
+    uploadLightCameraUniforms(shader) {
+        let point_light = this.scene.light.point_lights[0]  // this is temporary and arbitrary; maybe loop through all point lights?
+        this.gl.uniform3fv(shader.uniforms.light_ambient, this.scene.light.ambient);
+        this.gl.uniform3fv(shader.uniforms.light_position, point_light.position);
+        this.gl.uniform3fv(shader.uniforms.light_color, point_light.color);
+        this.gl.uniform3fv(shader.uniforms.camera_position, this.scene.camera.position);
+    }
+
+    uploadMaterialUniforms(shader, model) {
+        this.gl.uniform1f(shader.uniforms.material_shininess, model.material.shininess);
+        this.gl.uniform3fv(shader.uniforms.material_color, model.material.color);
+        this.gl.uniform3fv(shader.uniforms.material_specular, model.material.specular);
+    }
+
     updateScene(scene) {
         // update scene
         this.scene = scene;
@@ -278,12 +288,12 @@ class GlApp {
         this.render();
     }
 
-    getActiveColorShader() {
+    getSelectedColorShader() {
         return this.shader[this.algorithm + "_color"]
     }
 
-    getActiveTextureShader() {
-        return this.shader[this.algorithm + "_color"]
+    getSelectedTextureShader() {
+        return this.shader[this.algorithm + "_texture"]
     }
 
     getEmissiveShader() {
