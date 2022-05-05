@@ -18,4 +18,9 @@ out vec2 frag_texcoord;
 void main() {
     gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex_position, 1.0);
     frag_texcoord = vertex_texcoord * texture_scale;
+
+    frag_normal = normalize(frag_normal);                                   // normalize frag_normal
+    frag_normal = mat3(transpose(inverse(model_matrix))) * vertex_normal;   // inverse transpose similar to gouraud
+
+    frag_pos = (model_matrix * vec4(vertex_position, 1.0)).xyz;
 }

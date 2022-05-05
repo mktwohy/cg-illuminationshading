@@ -17,6 +17,30 @@ uniform sampler2D image;          // use in conjunction with Ka and Kd
 
 out vec4 FragColor;
 
+float dotPositive(vec3 x, vec3 y) {
+    return max(dot(x, y), 0.0);
+}
+
 void main() {
-    FragColor = vec4(material_color, 1.0) * texture(image, frag_texcoord);
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    
+
+    vec3 N = normalize(frag_normal);                          // normalized surface normal
+    vec3 L = normalize(light_position - frag_pos);         // normalized light direction // i swapped order of subtraction
+
+    vec3 R = normalize(-(reflect(L,N)));          // normalized reflected light direction
+    vec3 V = normalize(camera_position - frag_pos);  // normalized view direction // i swapped order of subtraction
+
+    ambient = light_ambient * material_color;
+    diffuse = light_color *  material_color * dotPositive(N, L);
+    specular = light_color * material_specular * pow(dotPositive(R,V), material_shininess);
+
+
+    vec3 result = ambient + diffuse + specular;
+
+    FragColor = vec4(result, 1.0); // which one?
+    FragColor = vec4(material_color, 1.0) * texture(image, frag_texcoord); // which one?
+
 }
