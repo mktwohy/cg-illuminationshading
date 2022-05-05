@@ -214,7 +214,10 @@ class GlApp {
 
             // TODO: bind proper texture and set uniform (if shader is a textured one)
             let tex_id = this.createDefaultTexture()
-
+            this.gl.activeTexture(this.gl.TEXTURE0)
+            this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)
+            this.gl.uniform1i(texture_shader.uniforms.image, 0) // image uniform reference texture slot 0
+            this.gl.bindTexture(this.gl.TEXTURE_2D, null)
 
             // draw vertices
             this.gl.bindVertexArray(this.vertex_array[model.type]);
