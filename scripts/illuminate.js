@@ -1,6 +1,7 @@
 const {mat4, vec2, vec3, vec4} = glMatrix;
 const color = {
     white:  [255, 255, 255, 255],
+    black:  [0,   0,   0,   255],
     red:    [255, 0,   0,   255],
     green:  [0,   255, 0,   255],
     blue:   [0,   0,   255, 255],
@@ -144,9 +145,9 @@ class GlApp {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE) // or gl.NEAS
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE)
 
-        // TEXTURE_2D.image = pixels
-        let pixels = [color.red, color.green, color.blue, color.white].flat()
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 2, 2, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array(pixels))
+        // // TEXTURE_2D.image = 1px RGBA array
+        let image = Uint8Array.from(color.white)
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.RGBA, image);
         this.gl.bindTexture(this.gl.TEXTURE_2D, null)
         return texture
     }
@@ -157,7 +158,7 @@ class GlApp {
 
         //
         // TODO: set texture parameters and upload a temporary 1px white RGBA array [255,255,255,255]
-        // 
+        //
 
         // download the actual image
         let image = new Image();
@@ -197,28 +198,32 @@ class GlApp {
             glMatrix.mat4.rotateX(this.model_matrix, this.model_matrix, model.rotate_x);
             glMatrix.mat4.scale(this.model_matrix, this.model_matrix, model.size);
 
+            // upload uniforms to color shader
             this.gl.useProgram(color_shader.program);
 
-            // upload uniforms to GPU
             this.uploadLightCameraUniforms(color_shader)
             this.uploadMaterialUniforms(color_shader, model)
             this.uploadMatrixUniforms(color_shader)
 
+            // upload uniforms to texture shader
             this.gl.useProgram(texture_shader.program)
 
-            // bind proper texture and set uniform (if shader is a textured one)
-            let tex_id = this.createDefaultTexture()                // tex_id = handle to default texture
+            this.uploadLightCameraUniforms(texture_shader)
+            this.uploadMaterialUniforms(texture_shader, model)
+            this.uploadMatrixUniforms(texture_shader)
+
+            // upload image uniform to texture shader
+            let tex_id = this.createDefaultTexture()                  // tex_id = handle to default texture
             this.gl.activeTexture(this.gl.TEXTURE0)                 // active texture = slot 0
             this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)         // TEXTURE_2D (active texture) = tex_id
             this.gl.uniform1i(texture_shader.uniforms.image, 0)  // uniform.image = slot 0
             this.gl.bindTexture(this.gl.TEXTURE_2D, null)
 
-            this.gl.useProgram(color_shader.program)
+            this.gl.uniform2fv(texture_shader.uniforms.texture_scale, vec2.fromValues(1.0, 1.0)) // todo placeholder
 
             // draw vertices
-            this.gl.bindVertexArray(this.vertex_array[model.type]);
-            this.gl.drawElements(this.gl.TRIANGLES, this.vertex_array[model.type].face_index_count, this.gl.UNSIGNED_SHORT, 0);
-            this.gl.bindVertexArray(null);
+            // this.drawVertices(color_shader, model)   // todo commented for debug (uncomment to draw color shader)
+            this.drawVertices(texture_shader, model)
         }
 
         // draw all light sources
@@ -242,6 +247,13 @@ class GlApp {
         }
     }
 
+    drawVertices(shader, model) {
+        this.gl.useProgram(shader.program)
+        this.gl.bindVertexArray(this.vertex_array[model.type]);
+        this.gl.drawElements(this.gl.TRIANGLES, this.vertex_array[model.type].face_index_count, this.gl.UNSIGNED_SHORT, 0);
+        this.gl.bindVertexArray(null);
+    }
+
     /** Note - must be called inside a gl.useProgram() block */
     uploadMatrixUniforms(shader) {
         this.gl.uniformMatrix4fv(shader.uniforms.projection_matrix, false, this.projection_matrix);
@@ -249,6 +261,7 @@ class GlApp {
         this.gl.uniformMatrix4fv(shader.uniforms.model_matrix, false, this.model_matrix);
     }
 
+    /** Note - must be called inside a gl.useProgram() block */
     uploadLightCameraUniforms(shader) {
         let point_light = this.scene.light.point_lights[0]  // this is temporary and arbitrary; maybe loop through all point lights?
         this.gl.uniform3fv(shader.uniforms.light_ambient, this.scene.light.ambient);
@@ -257,6 +270,7 @@ class GlApp {
         this.gl.uniform3fv(shader.uniforms.camera_position, this.scene.camera.position);
     }
 
+    /** Note - must be called inside a gl.useProgram() block */
     uploadMaterialUniforms(shader, model) {
         this.gl.uniform1f(shader.uniforms.material_shininess, model.material.shininess);
         this.gl.uniform3fv(shader.uniforms.material_color, model.material.color);
