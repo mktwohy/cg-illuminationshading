@@ -134,22 +134,26 @@ class GlApp {
 
     createDefaultTexture() {
         // (from PowerPoint 14 slide 9)
-        let texture = this.gl.createTexture();
+        let tex_id = this.gl.createTexture();
 
         // TEXTURE_2D = texture
-        this.gl.bindTexture(this.gl.TEXTURE_2D, texture)
+        this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)
 
         // TEXTURE_2D.parameter = value
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR) // or gl.NEAREST
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_NEAREST)
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE) // or gl.NEAS
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE)
 
-        // // TEXTURE_2D.image = 1px RGBA array
+        // TEXTURE_2D.image = 1px RGBA array
         let image = Uint8Array.from(color.white)
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.RGBA, image);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+
+        // generate mipmap
+        this.gl.generateMipmap(this.gl.TEXTURE_2D);
+
         this.gl.bindTexture(this.gl.TEXTURE_2D, null)
-        return texture
+        return tex_id
     }
 
     initializeTexture(image_url) {
@@ -200,7 +204,6 @@ class GlApp {
 
             // upload uniforms to color shader
             this.gl.useProgram(color_shader.program);
-
             this.uploadLightCameraUniforms(color_shader)
             this.uploadMaterialUniforms(color_shader, model)
             this.uploadMatrixUniforms(color_shader)
