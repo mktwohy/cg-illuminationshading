@@ -183,22 +183,27 @@ class GlApp {
         }, false);
         image.src = image_url;
 
+        return tex_id;
+    }
+
+    updateTexture(tex_id, image_element) {
+        this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)
+
         // upload image to GPU as a texture
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+        this.gl.texImage2D(
+            this.gl.TEXTURE_2D,
+            0,
+            this.gl.RGBA,
+            this.gl.RGBA,
+            this.gl.UNSIGNED_BYTE,
+            image_element
+        );
 
         // generate mipmap
         this.gl.generateMipmap(this.gl.TEXTURE_2D);
 
         // unbind TEXTURE_2D
         this.gl.bindTexture(this.gl.TEXTURE_2D, null)
-
-        return tex_id;
-    }
-
-    updateTexture(texture, image_element) {
-        //
-        // TODO: update image for specified texture
-        //
     }
 
     render() {
