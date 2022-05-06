@@ -220,77 +220,89 @@ class GlApp {
         // draw all models
         for (let model of this.scene.models) {
             if (this.vertex_array[model.type] == null) continue;
-
-            // transform model to proper position, size, and orientation
-            glMatrix.mat4.identity(this.model_matrix);
-            glMatrix.mat4.translate(this.model_matrix, this.model_matrix, model.center);
-            glMatrix.mat4.rotateZ(this.model_matrix, this.model_matrix, model.rotate_z);
-            glMatrix.mat4.rotateY(this.model_matrix, this.model_matrix, model.rotate_y);
-            glMatrix.mat4.rotateX(this.model_matrix, this.model_matrix, model.rotate_x);
-            glMatrix.mat4.scale(this.model_matrix, this.model_matrix, model.size);
-
-            switch (model.shader) {
-                case 'color':
-                    console.log("model:", model.type, "color:", model.material.color)
-
-                    this.gl.useProgram(color_shader.program);
-
-                    this.uploadLightCameraUniforms(color_shader)
-                    this.uploadMaterialUniforms(color_shader, model)
-                    this.uploadMatrixUniforms(color_shader)
-
-                    this.drawVertices(color_shader, model)
-
-                    this.gl.useProgram(null)
-                    break
-                case 'texture':
-                    console.log("model:", model.type, "texture:", model.texture.url)
-
-                    this.gl.useProgram(texture_shader.program)
-
-                    // temp:
-                    // let tex_id = this.createDefaultTexture(color.green)
-                    // let tex_scale = vec2.fromValues(1.0, 1.0)
-                    // this.uploadTextureUniforms(texture_shader, tex_id, tex_scale)
-
-                    this.uploadTextureUniforms(texture_shader, model)
-                    this.uploadLightCameraUniforms(texture_shader)
-                    this.uploadMaterialUniforms(texture_shader, model)
-                    this.uploadMatrixUniforms(texture_shader)
-
-                    this.drawVertices(texture_shader, model)
-
-                    this.gl.bindTexture(this.gl.TEXTURE_2D, null)
-                    this.gl.useProgram(null)
-
-                    break
-                default:
-                    console.log("invalid texture type")
-                    break
-            }
+            this.drawModel(color_shader, texture_shader, model)
         }
 
         // draw all light sources
         for (let point_light of this.scene.light.point_lights) {
-            this.gl.useProgram(light_shader.program);
-
-            glMatrix.mat4.identity(this.model_matrix);
-            glMatrix.mat4.translate(this.model_matrix, this.model_matrix, point_light.position);
-            glMatrix.mat4.scale(this.model_matrix, this.model_matrix, glMatrix.vec3.fromValues(0.1, 0.1, 0.1));
-
-            // upload vert uniforms to GPU
-            this.uploadMatrixUniforms(light_shader)
-
-            // upload frag uniforms to GPU
-            this.gl.uniform3fv(light_shader.uniforms.material_color, point_light.color);
-
-            // draw vertices
-            this.gl.bindVertexArray(this.vertex_array['sphere']);
-            this.gl.drawElements(this.gl.TRIANGLES, this.vertex_array['sphere'].face_index_count, this.gl.UNSIGNED_SHORT, 0);
-            this.gl.bindVertexArray(null);
+            this.drawPointLight(light_shader, point_light)
         }
     }
 
+    drawPointLight(shader, point_light) {
+        this.gl.useProgram(shader.program);
+
+        glMatrix.mat4.identity(this.model_matrix);
+        glMatrix.mat4.translate(this.model_matrix, this.model_matrix, point_light.position);
+        glMatrix.mat4.scale(this.model_matrix, this.model_matrix, glMatrix.vec3.fromValues(0.1, 0.1, 0.1));
+
+        // upload vert uniforms to GPU
+        this.uploadMatrixUniforms(shader)
+
+        // upload frag uniforms to GPU
+        this.gl.uniform3fv(shader.uniforms.material_color, point_light.color);
+
+        // draw vertices
+        this.gl.bindVertexArray(this.vertex_array['sphere']);
+        this.gl.drawElements(this.gl.TRIANGLES, this.vertex_array['sphere'].face_index_count, this.gl.UNSIGNED_SHORT, 0);
+        this.gl.bindVertexArray(null);
+    }
+
+// --- DRAW METHODS ---
+    drawModel(color_shader, texture_shader, model) {
+        // transform model to proper position, size, and orientation
+        glMatrix.mat4.identity(this.model_matrix);
+        glMatrix.mat4.translate(this.model_matrix, this.model_matrix, model.center);
+        glMatrix.mat4.rotateZ(this.model_matrix, this.model_matrix, model.rotate_z);
+        glMatrix.mat4.rotateY(this.model_matrix, this.model_matrix, model.rotate_y);
+        glMatrix.mat4.rotateX(this.model_matrix, this.model_matrix, model.rotate_x);
+        glMatrix.mat4.scale(this.model_matrix, this.model_matrix, model.size);
+
+        switch (model.shader) {
+            case 'color':
+                this.drawModelMaterial(color_shader, model)
+                break
+            case 'texture':
+
+                this.drawModelTexture(texture_shader, model)
+                break
+            default:
+                console.log("invalid texture type")
+                break
+        }
+    }
+
+    drawModelMaterial(shader, model) {
+        this.gl.useProgram(shader.program);
+
+        this.uploadLightCameraUniforms(shader)
+        this.uploadMaterialUniforms(shader, model)
+        this.uploadMatrixUniforms(shader)
+
+        this.drawVertices(shader, model)
+
+        this.gl.useProgram(null)
+    }
+
+    drawModelTexture(shader, model) {
+        // setup state
+        this.gl.useProgram(shader.program)
+
+        // upload uniforms
+        this.uploadTextureUniforms(shader, model)
+        this.uploadLightCameraUniforms(shader)
+        this.uploadMaterialUniforms(shader, model)
+        this.uploadMatrixUniforms(shader)
+
+        // draw
+        this.drawVertices(shader, model)
+
+        // teardown state
+        this.gl.bindTexture(this.gl.TEXTURE_2D, null)
+        this.gl.useProgram(null)
+    }
+
+// --- HELPER METHODS FOR gl.useProgram() BLOCKS ---
     /** Note - must be called inside a gl.useProgram() block */
     drawVertices(shader, model) {
         this.gl.bindVertexArray(this.vertex_array[model.type]);
