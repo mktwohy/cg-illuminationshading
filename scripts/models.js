@@ -395,6 +395,8 @@ function createSphereVertexArray(gl, position_attrib, normal_attrib, texcoord_at
 //         - minimum of 16 vertices
 //
 function createCustomVertexArray(gl, position_attrib, normal_attrib, texcoord_attrib) {
+    return null
+    // todo assign variables, then delete the line above
     let vertices = generateHexagonalPrismVertices(0.5, 0.0, 0.0)
     let normals
     let texcoords
