@@ -132,7 +132,7 @@ class GlApp {
         this.render();
     }
 
-    createDefaultTexture() {
+    createDefaultTexture(color) {
         // (from PowerPoint 14 slide 9)
         let tex_id = this.gl.createTexture();
 
@@ -146,7 +146,7 @@ class GlApp {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE)
 
         // TEXTURE_2D.image = 1px RGBA array
-        let image = Uint8Array.from(color.white)
+        let image = Uint8Array.from(color)
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
 
         // generate mipmap
@@ -202,31 +202,30 @@ class GlApp {
             glMatrix.mat4.rotateX(this.model_matrix, this.model_matrix, model.rotate_x);
             glMatrix.mat4.scale(this.model_matrix, this.model_matrix, model.size);
 
-            // upload uniforms to color shader
+            // --- COLOR SHADER ---
             this.gl.useProgram(color_shader.program);
+
             this.uploadLightCameraUniforms(color_shader)
             this.uploadMaterialUniforms(color_shader, model)
             this.uploadMatrixUniforms(color_shader)
 
-            // upload uniforms to texture shader
+            // this.drawVertices(color_shader, model)   // todo commented for debug (uncomment to draw color shader)
+
+            // --- TEXTURE SHADER ---
             this.gl.useProgram(texture_shader.program)
 
+            let tex_id = this.createDefaultTexture(color.green)
+            let tex_scale = vec2.fromValues(1.0, 1.0)
+            this.uploadTextureUniforms(texture_shader, tex_id, tex_scale)
             this.uploadLightCameraUniforms(texture_shader)
             this.uploadMaterialUniforms(texture_shader, model)
             this.uploadMatrixUniforms(texture_shader)
 
-            // upload image uniform to texture shader
-            let tex_id = this.createDefaultTexture()                  // tex_id = handle to default texture
-            this.gl.activeTexture(this.gl.TEXTURE0)                 // active texture = slot 0
-            this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)         // TEXTURE_2D (active texture) = tex_id
-            this.gl.uniform1i(texture_shader.uniforms.image, 0)  // uniform.image = slot 0
-            this.gl.bindTexture(this.gl.TEXTURE_2D, null)
-
-            this.gl.uniform2fv(texture_shader.uniforms.texture_scale, vec2.fromValues(1.0, 1.0)) // todo placeholder
-
-            // draw vertices
-            // this.drawVertices(color_shader, model)   // todo commented for debug (uncomment to draw color shader)
             this.drawVertices(texture_shader, model)
+
+            // unbind
+            this.gl.bindTexture(this.gl.TEXTURE_2D, null)
+            this.gl.useProgram(null)
         }
 
         // draw all light sources
@@ -250,11 +249,20 @@ class GlApp {
         }
     }
 
+    /** Note - must be called inside a gl.useProgram() block */
     drawVertices(shader, model) {
-        this.gl.useProgram(shader.program)
         this.gl.bindVertexArray(this.vertex_array[model.type]);
         this.gl.drawElements(this.gl.TRIANGLES, this.vertex_array[model.type].face_index_count, this.gl.UNSIGNED_SHORT, 0);
         this.gl.bindVertexArray(null);
+    }
+
+    /** Note - must be called inside a gl.useProgram() block */
+    uploadTextureUniforms(shader, tex_id, tex_scale) {
+        this.gl.activeTexture(this.gl.TEXTURE0)                 // active texture = slot 0
+        this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)         // TEXTURE_2D (active texture) = tex_id
+        this.gl.uniform1i(shader.uniforms.image, 0)  // uniform.image = slot 0
+
+        this.gl.uniform2fv(shader.uniforms.texture_scale, tex_scale) // todo placeholder
     }
 
     /** Note - must be called inside a gl.useProgram() block */
