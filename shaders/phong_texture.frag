@@ -25,7 +25,8 @@ void main() {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-    
+
+    vec4 texel = texture(image, frag_texcoord);
 
     vec3 N = normalize(frag_normal);                          // normalized surface normal
     vec3 L = normalize(light_position - frag_pos);         // normalized light direction // i swapped order of subtraction
@@ -41,6 +42,6 @@ void main() {
     vec3 result = ambient + diffuse + specular;
 
     //FragColor = vec4(result, 1.0); // which one?
-    FragColor = vec4(result, 1.0) * texture(image, frag_texcoord); // which one?
+    FragColor = vec4(result, 1.0) * texel; // which one?
 
 }
