@@ -156,7 +156,6 @@ class GlApp {
         return tex_id
     }
 
-    // todo this method throws GL errors
     initializeTexture(image_url) {
         // create texture
         let tex_id = this.gl.createTexture();
@@ -171,8 +170,8 @@ class GlApp {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE)
 
         // upload 1x1 white texture to TEXTURE_2D
-        let white_texture = Uint8Array.from(color)
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, white_texture);
+        // let white_texture = Uint8Array.from(color)
+        // this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, white_texture);
 
         // download the actual image
         let image = new Image();
@@ -187,6 +186,8 @@ class GlApp {
     }
 
     updateTexture(tex_id, image_element) {
+        console.log("updateTexture")
+        // bind TEXTURE_2D to tex_id
         this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)
 
         // upload image to GPU as a texture
@@ -204,6 +205,8 @@ class GlApp {
 
         // unbind TEXTURE_2D
         this.gl.bindTexture(this.gl.TEXTURE_2D, null)
+
+        this.render()
     }
 
     render() {
@@ -250,8 +253,8 @@ class GlApp {
                     let tex_scale = vec2.fromValues(1.0, 1.0)
                     this.uploadTextureUniforms(texture_shader, tex_id, tex_scale)
 
-                    // this.uploadTextureUniforms(texture_shader, model.texture.id, model.texture.scale) // todo make this work
-                    this.uploadLightCameraUniforms(texture_shader)
+                    this.uploadTextureUniforms(texture_shader, model.texture.id, model.texture.scale) // todo make this work
+                    // this.uploadLightCameraUniforms(texture_shader)
                     this.uploadMaterialUniforms(texture_shader, model)
                     this.uploadMatrixUniforms(texture_shader)
 
