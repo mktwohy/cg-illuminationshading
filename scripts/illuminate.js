@@ -6,6 +6,8 @@ const color = {
     green:  [0,   255, 0,   255],
     blue:   [0,   0,   255, 255],
 }
+const checkered_url = "https://raw.githubusercontent.com/tmarrinan/cg-illuminationshading/master/images/Checkered.jpg"
+const worldMap_url = "https://raw.githubusercontent.com/tmarrinan/cg-illuminationshading/master/images/World_Map.jpg"
 
 class GlApp {
     constructor(canvas_id, width, height, scene) {
