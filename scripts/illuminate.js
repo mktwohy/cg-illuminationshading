@@ -164,10 +164,10 @@ class GlApp {
         this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)
 
         // set TEXTURE_2D parameters
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR) // or gl.NEAREST
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_NEAREST)
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE) // or gl.NEAS
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR_MIPMAP_LINEAR)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT)
 
         // upload 1x1 white texture to TEXTURE_2D
         // let white_texture = Uint8Array.from(color)
@@ -229,6 +229,7 @@ class GlApp {
         }
     }
 
+// --- DRAW METHODS ---
     drawPointLight(point_light, shader) {
         this.gl.useProgram(shader.program);
 
@@ -248,7 +249,6 @@ class GlApp {
         this.gl.bindVertexArray(null);
     }
 
-// --- DRAW METHODS ---
     drawModel(model, color_shader, texture_shader) {
         // transform model to proper position, size, and orientation
         glMatrix.mat4.identity(this.model_matrix);
