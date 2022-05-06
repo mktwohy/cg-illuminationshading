@@ -194,40 +194,38 @@ class GlApp {
         for (let model of this.scene.models) {
             if (this.vertex_array[model.type] == null) continue;
 
-            for (let point_light of this.scene.light.point_lights) {
-                // transform model to proper position, size, and orientation
-                glMatrix.mat4.identity(this.model_matrix);
-                glMatrix.mat4.translate(this.model_matrix, this.model_matrix, model.center);
-                glMatrix.mat4.rotateZ(this.model_matrix, this.model_matrix, model.rotate_z);
-                glMatrix.mat4.rotateY(this.model_matrix, this.model_matrix, model.rotate_y);
-                glMatrix.mat4.rotateX(this.model_matrix, this.model_matrix, model.rotate_x);
-                glMatrix.mat4.scale(this.model_matrix, this.model_matrix, model.size);
+            // transform model to proper position, size, and orientation
+            glMatrix.mat4.identity(this.model_matrix);
+            glMatrix.mat4.translate(this.model_matrix, this.model_matrix, model.center);
+            glMatrix.mat4.rotateZ(this.model_matrix, this.model_matrix, model.rotate_z);
+            glMatrix.mat4.rotateY(this.model_matrix, this.model_matrix, model.rotate_y);
+            glMatrix.mat4.rotateX(this.model_matrix, this.model_matrix, model.rotate_x);
+            glMatrix.mat4.scale(this.model_matrix, this.model_matrix, model.size);
 
-                // --- COLOR SHADER ---
-                this.gl.useProgram(color_shader.program);
+            // --- COLOR SHADER ---
+            this.gl.useProgram(color_shader.program);
 
-                this.uploadLightCameraUniforms(color_shader, point_light)
-                this.uploadMaterialUniforms(color_shader, model)
-                this.uploadMatrixUniforms(color_shader)
+            this.uploadLightCameraUniforms(color_shader)
+            this.uploadMaterialUniforms(color_shader, model)
+            this.uploadMatrixUniforms(color_shader)
 
-                this.drawVertices(color_shader, model)   // todo commented for debug (uncomment to draw color shader)
+            this.drawVertices(color_shader, model)   // todo commented for debug (uncomment to draw color shader)
 
-                // --- TEXTURE SHADER ---
-                this.gl.useProgram(texture_shader.program)
+            // --- TEXTURE SHADER ---
+            this.gl.useProgram(texture_shader.program)
 
-                let tex_id = this.createDefaultTexture(color.green)
-                let tex_scale = vec2.fromValues(1.0, 1.0)
-                this.uploadTextureUniforms(texture_shader, tex_id, tex_scale)
-                this.uploadLightCameraUniforms(texture_shader, point_light)
-                this.uploadMaterialUniforms(texture_shader, model)
-                this.uploadMatrixUniforms(texture_shader)
+            let tex_id = this.createDefaultTexture(color.green)
+            let tex_scale = vec2.fromValues(1.0, 1.0)
+            this.uploadTextureUniforms(texture_shader, tex_id, tex_scale)
+            this.uploadLightCameraUniforms(texture_shader)
+            this.uploadMaterialUniforms(texture_shader, model)
+            this.uploadMatrixUniforms(texture_shader)
 
-                this.drawVertices(texture_shader, model)
+            this.drawVertices(texture_shader, model)
 
-                // unbind
-                this.gl.bindTexture(this.gl.TEXTURE_2D, null)
-                this.gl.useProgram(null)
-            }
+            // unbind
+            this.gl.bindTexture(this.gl.TEXTURE_2D, null)
+            this.gl.useProgram(null)
         }
 
         // draw all light sources
@@ -275,7 +273,8 @@ class GlApp {
     }
 
     /** Note - must be called inside a gl.useProgram() block */
-    uploadLightCameraUniforms(shader, point_light) {
+    uploadLightCameraUniforms(shader) {
+        let point_light = this.scene.light.point_lights[0]  // this is temporary and arbitrary; maybe loop through all point lights?
         this.gl.uniform3fv(shader.uniforms.light_ambient, this.scene.light.ambient);
         this.gl.uniform3fv(shader.uniforms.light_position, point_light.position);
         this.gl.uniform3fv(shader.uniforms.light_color, point_light.color);
