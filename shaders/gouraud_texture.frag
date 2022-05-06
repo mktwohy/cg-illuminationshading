@@ -19,7 +19,7 @@ void main() { // might need to change this from color???
     vec3 specular_light = specular * material_specular; 
 
     vec3 result = ambient_light + diffuse_light + specular_light;
-    FragColor = vec4(result, 1.0);
-    //FragColor = texture(image, frag_texcoord);
+//    FragColor = vec4(result, 1.0);
+    FragColor = texture(image, frag_texcoord);
 
 }

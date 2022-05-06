@@ -6,8 +6,6 @@ const color = {
     green:  [0,   255, 0,   255],
     blue:   [0,   0,   255, 255],
 }
-const checkered_url = "https://raw.githubusercontent.com/tmarrinan/cg-illuminationshading/master/images/Checkered.jpg"
-const worldMap_url = "https://raw.githubusercontent.com/tmarrinan/cg-illuminationshading/master/images/World_Map.jpg"
 
 class GlApp {
     constructor(canvas_id, width, height, scene) {
@@ -158,24 +156,43 @@ class GlApp {
         return tex_id
     }
 
+    // todo this method throws GL errors
     initializeTexture(image_url) {
-        // create a texture, and upload a temporary 1px white RGBA array [255,255,255,255]
-        let texture = this.gl.createTexture();
+        // create texture
+        let tex_id = this.gl.createTexture();
 
-        //
-        // TODO: set texture parameters and upload a temporary 1px white RGBA array [255,255,255,255]
-        //
+        // bind TEXTURE_2D to tex_id
+        this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)
+
+        // set TEXTURE_2D parameters
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR) // or gl.NEAREST
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_NEAREST)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE) // or gl.NEAS
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE)
+
+        // upload 1x1 white texture to TEXTURE_2D
+        let white_texture = Uint8Array.from(color)
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, white_texture);
 
         // download the actual image
         let image = new Image();
         image.crossOrigin = 'anonymous';
         image.addEventListener('load', (event) => {
             // once image is downloaded, update the texture image
-            this.updateTexture(texture, image);
+            this.updateTexture(tex_id, image);
         }, false);
         image.src = image_url;
 
-        return texture;
+        // upload image to GPU as a texture
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+
+        // generate mipmap
+        this.gl.generateMipmap(this.gl.TEXTURE_2D);
+
+        // unbind TEXTURE_2D
+        this.gl.bindTexture(this.gl.TEXTURE_2D, null)
+
+        return tex_id;
     }
 
     updateTexture(texture, image_element) {
@@ -204,30 +221,45 @@ class GlApp {
             glMatrix.mat4.rotateX(this.model_matrix, this.model_matrix, model.rotate_x);
             glMatrix.mat4.scale(this.model_matrix, this.model_matrix, model.size);
 
-            // --- COLOR SHADER ---
-            this.gl.useProgram(color_shader.program);
+            switch (model.shader) {
+                case 'color':
+                    console.log("model:", model.type, "color:", model.material.color)
 
-            this.uploadLightCameraUniforms(color_shader)
-            this.uploadMaterialUniforms(color_shader, model)
-            this.uploadMatrixUniforms(color_shader)
+                    this.gl.useProgram(color_shader.program);
 
-            this.drawVertices(color_shader, model)   // todo commented for debug (uncomment to draw color shader)
+                    this.uploadLightCameraUniforms(color_shader)
+                    this.uploadMaterialUniforms(color_shader, model)
+                    this.uploadMatrixUniforms(color_shader)
 
-            // --- TEXTURE SHADER ---
-            this.gl.useProgram(texture_shader.program)
+                    this.drawVertices(color_shader, model)   // todo commented for debug (uncomment to draw color shader)
 
-            let tex_id = this.createDefaultTexture(color.green)
-            let tex_scale = vec2.fromValues(1.0, 1.0)
-            this.uploadTextureUniforms(texture_shader, tex_id, tex_scale)
-            this.uploadLightCameraUniforms(texture_shader)
-            this.uploadMaterialUniforms(texture_shader, model)
-            this.uploadMatrixUniforms(texture_shader)
+                    this.gl.useProgram(null)
+                    break
+                case 'texture':
+                    console.log("model:", model.type, "texture:", model.texture.url)
 
-            this.drawVertices(texture_shader, model)
+                    this.gl.useProgram(texture_shader.program)
 
-            // unbind
-            this.gl.bindTexture(this.gl.TEXTURE_2D, null)
-            this.gl.useProgram(null)
+                    // temp:
+                    let tex_id = this.createDefaultTexture(color.green)
+                    let tex_scale = vec2.fromValues(1.0, 1.0)
+                    this.uploadTextureUniforms(texture_shader, tex_id, tex_scale)
+
+                    // this.uploadTextureUniforms(texture_shader, model.texture.id, model.texture.scale) // todo make this work
+                    this.uploadLightCameraUniforms(texture_shader)
+                    this.uploadMaterialUniforms(texture_shader, model)
+                    this.uploadMatrixUniforms(texture_shader)
+
+                    this.drawVertices(texture_shader, model)
+
+                    this.gl.bindTexture(this.gl.TEXTURE_2D, null)
+                    this.gl.useProgram(null)
+
+                    break
+                default:
+                    console.log("invalid texture type")
+                    break
+            }
         }
 
         // draw all light sources
