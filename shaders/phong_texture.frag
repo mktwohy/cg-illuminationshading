@@ -33,14 +33,14 @@ void main() {
     vec3 R = normalize(-(reflect(L,N)));          // normalized reflected light direction
     vec3 V = normalize(camera_position - frag_pos);  // normalized view direction // i swapped order of subtraction
 
-    ambient = light_ambient * material_color;
-    diffuse = light_color *  material_color * dotPositive(N, L);
+    ambient = light_ambient * light_color;
+    diffuse = light_color *  light_color * dotPositive(N, L);
     specular = light_color * material_specular * pow(dotPositive(R,V), material_shininess);
 
 
     vec3 result = ambient + diffuse + specular;
 
-    FragColor = vec4(result, 1.0); // which one?
-    FragColor = vec4(material_color, 1.0) * texture(image, frag_texcoord); // which one?
+    //FragColor = vec4(result, 1.0); // which one?
+    FragColor = vec4(result, 1.0) * texture(image, frag_texcoord); // which one?
 
 }
