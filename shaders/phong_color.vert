@@ -12,7 +12,7 @@ uniform mat4 projection_matrix;
 out vec3 frag_pos;
 out vec3 frag_normal;
 
-void main() {
+void main() { // this file does not change for multiple lights, pretty sure
     gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex_position, 1.0);
 
     frag_normal = normalize(frag_normal);                                   // normalize frag_normal
