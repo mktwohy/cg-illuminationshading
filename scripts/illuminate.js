@@ -220,16 +220,16 @@ class GlApp {
         // draw all models
         for (let model of this.scene.models) {
             if (this.vertex_array[model.type] == null) continue;
-            this.drawModel(color_shader, texture_shader, model)
+            this.drawModel(model, color_shader, texture_shader)
         }
 
         // draw all light sources
         for (let point_light of this.scene.light.point_lights) {
-            this.drawPointLight(light_shader, point_light)
+            this.drawPointLight(point_light, light_shader)
         }
     }
 
-    drawPointLight(shader, point_light) {
+    drawPointLight(point_light, shader) {
         this.gl.useProgram(shader.program);
 
         glMatrix.mat4.identity(this.model_matrix);
@@ -249,7 +249,7 @@ class GlApp {
     }
 
 // --- DRAW METHODS ---
-    drawModel(color_shader, texture_shader, model) {
+    drawModel(model, color_shader, texture_shader) {
         // transform model to proper position, size, and orientation
         glMatrix.mat4.identity(this.model_matrix);
         glMatrix.mat4.translate(this.model_matrix, this.model_matrix, model.center);
@@ -260,11 +260,11 @@ class GlApp {
 
         switch (model.shader) {
             case 'color':
-                this.drawModelMaterial(color_shader, model)
+                this.drawModelMaterial(model, color_shader)
                 break
             case 'texture':
 
-                this.drawModelTexture(texture_shader, model)
+                this.drawModelTexture(model, texture_shader)
                 break
             default:
                 console.log("invalid texture type")
@@ -272,19 +272,19 @@ class GlApp {
         }
     }
 
-    drawModelMaterial(shader, model) {
+    drawModelMaterial(model, shader) {
         this.gl.useProgram(shader.program);
 
         this.uploadLightCameraUniforms(shader)
         this.uploadMaterialUniforms(shader, model)
         this.uploadMatrixUniforms(shader)
 
-        this.drawVertices(shader, model)
+        this.drawVertices(model, shader)
 
         this.gl.useProgram(null)
     }
 
-    drawModelTexture(shader, model) {
+    drawModelTexture(model, shader) {
         // setup state
         this.gl.useProgram(shader.program)
 
@@ -295,7 +295,7 @@ class GlApp {
         this.uploadMatrixUniforms(shader)
 
         // draw
-        this.drawVertices(shader, model)
+        this.drawVertices(model, shader)
 
         // teardown state
         this.gl.bindTexture(this.gl.TEXTURE_2D, null)
@@ -304,7 +304,7 @@ class GlApp {
 
 // --- HELPER METHODS FOR gl.useProgram() BLOCKS ---
     /** Note - must be called inside a gl.useProgram() block */
-    drawVertices(shader, model) {
+    drawVertices(model) {
         this.gl.bindVertexArray(this.vertex_array[model.type]);
         this.gl.drawElements(this.gl.TRIANGLES, this.vertex_array[model.type].face_index_count, this.gl.UNSIGNED_SHORT, 0);
         this.gl.bindVertexArray(null);
