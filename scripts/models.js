@@ -395,5 +395,111 @@ function createSphereVertexArray(gl, position_attrib, normal_attrib, texcoord_at
 //         - minimum of 16 vertices
 //
 function createCustomVertexArray(gl, position_attrib, normal_attrib, texcoord_attrib) {
-    return null;
+    let vertices = generateHexagonalPrismVertices(0.5, 0.0, 0.0)
+    let normals
+    let texcoords
+    let indices
+    return createGenericVertexArray(
+        gl, position_attrib, normal_attrib, texcoord_attrib,
+        vertices, normals, texcoords, indices
+    )
 }
+
+/**
+ * every createSHAPEVertexArray() function does the same thing, so I generalized it.
+ * @param gl
+ * @param position_attrib
+ * @param normal_attrib
+ * @param texcoord_attrib
+ * @param vertices array of 3D vertex values (each set of 3 values specifies a vertex: x, y, z)
+ * @param normals array of 3D vector values (each set of 3 values specifies a normalized vector: x, y, z)
+ * @param texcoords array of 2D texture coordinate values (each set of 2 values specifies texture coordinate: u, v)
+ * @param indices array of vertex indices (each set of 3 represents a triangle)
+ * @returns {WebGLVertexArrayObject}
+ */
+function createGenericVertexArray(gl, position_attrib, normal_attrib, texcoord_attrib, vertices, normals, texcoords, indices) {
+    // create a new Vertex Array Object
+    let vertex_array = gl.createVertexArray();
+    // set newly created Vertex Array Object as the active one we are modifying
+    gl.bindVertexArray(vertex_array);
+
+
+    // create buffer to store vertex positions (3D points)
+    let vertex_position_buffer = gl.createBuffer();
+    // set newly created buffer as the active one we are modifying
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertex_position_buffer);
+    // store array of vertex positions in the vertex_position_buffer
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    // enable position_attrib in our GPU program
+    gl.enableVertexAttribArray(position_attrib);
+    // attach vertex_position_buffer to the position_attrib
+    // (as 3-component floating point values)
+    gl.vertexAttribPointer(position_attrib, 3, gl.FLOAT, false, 0, 0);
+
+
+    // create buffer to store vertex normals (vector pointing perpendicular to surface)
+    let vertex_normal_buffer = gl.createBuffer();
+    // set newly created buffer as the active one we are modifying
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertex_normal_buffer);
+    // store array of vertex normals in the vertex_normal_buffer
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+    // enable normal_attrib in our GPU program
+    gl.enableVertexAttribArray(normal_attrib);
+    // attach vertex_normal_buffer to the normal_attrib
+    // (as 3-component floating point values)
+    gl.vertexAttribPointer(normal_attrib, 3, gl.FLOAT, false, 0, 0);
+
+
+    // create buffer to store texture coordinate (2D coordinates for mapping images to the surface)
+    let vertex_texcoord_buffer = gl.createBuffer();
+    // set newly created buffer as the active one we are modifying
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertex_texcoord_buffer);
+    // store array of vertex texture coordinates in the vertex_texcoord_buffer
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
+    // enable texcoord_attrib in our GPU program
+    gl.enableVertexAttribArray(texcoord_attrib);
+    // attach vertex_texcoord_buffer to the texcoord_attrib
+    // (as 2-component floating point values)
+    gl.vertexAttribPointer(texcoord_attrib, 2, gl.FLOAT, false, 0, 0);
+
+
+    // create buffer to store faces of the triangle
+    let vertex_index_buffer = gl.createBuffer();
+    // set newly created buffer as the active one we are modifying
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertex_index_buffer);
+
+    // store array of vertex indices in the vertex_index_buffer
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+    // no longer modifying our Vertex Array Object, so deselect
+    gl.bindVertexArray(null);
+
+    // store the number of vertices used for entire model (number of faces * 3)
+    vertex_array.face_index_count = indices.length;
+
+    // return created Vertex Array Object
+    return vertex_array;
+}
+
+/**
+ * Generates vertices for hexagonal prism in the following order:
+ * - vertices from bottom hexagon are added, then from top.
+ * - vertices in each hexagon are added clockwise, starting at angle = 30 degrees
+ *
+ * inspired by [link](https://www.redblobgames.com/grids/hexagons/)
+ */
+
+function generateHexagonalPrismVertices(radius, z_bottom, z_top) {
+    let center = { x: 0.0, y: 0.0 }
+    let points = []
+    for (let z of [z_bottom, z_top]) {
+        for (let angle = 30; angle <= 330; angle += 30) {
+            let angle_rad = Math.PI / 180 * angle
+            let x = center.x + radius * Math.cos(angle_rad)
+            let y = center.y + radius * Math.sin(angle_rad)
+            points.push(x, y, z)
+        }
+    }
+    return points
+}
+
