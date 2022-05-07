@@ -45,15 +45,17 @@ void main() {
         // got this attenuation formula from some glsl docs (att = 1.0 / (1.0 + 0.1*dist + 0.01*dist*dist))
         // not sure if that is what we want. I have also seen some examples that use a clamp() function
 
-        // so attenuation would be
-        // float att = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);
+       
         // and distance would probably be
-        // float dist = (light_position[i]-frag_pos);
+        float dist = length(light_positions[i]- world_vertex_position);
 
-        ambient += light_ambient;
-        diffuse += light_colors[i] * dotPositive(N, L);
+         // so attenuation would be
+        float att = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);
+
+        ambient += light_ambient * att;
+        diffuse += light_colors[i] * dotPositive(N, L) * att;
         // diffuse = diffuse + light_color[i] * dotPositive(N,L) * att; // i think att goes in here
-        specular += light_colors[i] * pow(dotPositive(R,V), material_shininess);
+        specular += light_colors[i] * pow(dotPositive(R,V), material_shininess) * att;
         //specular = light_color[i] * pow(dotPositive(R,V), material_shininess) * att; // i think att goes in here
     }
 }
