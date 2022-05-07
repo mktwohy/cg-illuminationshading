@@ -32,17 +32,20 @@ void main() {
     gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex_position, 1.0);
     frag_texcoord = vertex_texcoord * texture_scale;
 
-    vec3 world_vertex_normal = normalize(mat3(transpose(inverse(model_matrix))) * vertex_normal);
-    vec3 world_vertex_position = (model_matrix * vec4(vertex_position, 1.0)).xyz;
+    for (int i = 0; i < num_lights; i++) {
+        vec3 world_vertex_normal = normalize(mat3(transpose(inverse(model_matrix))) * vertex_normal);
+        vec3 world_vertex_position = (model_matrix * vec4(vertex_position, 1.0)).xyz;
 
-    vec3 N = normalize(world_vertex_normal);                      // normalized surface normal
-    vec3 L = normalize(light_positions[0] - world_vertex_position);   // normalized light direction
+        vec3 N = normalize(world_vertex_normal);                      // normalized surface normal
+        vec3 L = normalize(light_positions[i] - world_vertex_position);   // normalized light direction
 
-    vec3 R = normalize(-(reflect(L,N)));          // normalized reflected light direction
-    vec3 V = normalize(camera_position - world_vertex_position);  // normalized view direction // i swapped order of subtraction
+        vec3 R = normalize(-(reflect(L,N)));          // normalized reflected light direction
+        vec3 V = normalize(camera_position - world_vertex_position);  // normalized view direction // i swapped order of subtraction
 
 
-    ambient = light_ambient;
-    diffuse = light_colors[0] * dotPositive(N, L);
-    specular = light_colors[0] * pow(dotPositive(R,V), material_shininess);
+        ambient += light_ambient;
+        diffuse += light_colors[i] * dotPositive(N, L);
+        specular += light_colors[i] * pow(dotPositive(R,V), material_shininess);
+    }
+
 }
