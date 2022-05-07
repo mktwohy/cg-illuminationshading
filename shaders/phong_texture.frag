@@ -55,7 +55,7 @@ void main() {
    //vec3 diffuse;
     //vec3 specular;
     
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < num_lights; i++) {
     
     //vec3 diffuse;// these two change based on each light source so need to update each iteration
     //vec3 specular;// these two change based on each light source so need to update each iteration
