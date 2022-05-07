@@ -1,14 +1,17 @@
 #version 300 es
 
+#define MAX_NUM_LIGHTS 10       // arrays need to have constant sizes for indexing
+
 precision highp float;
 
 in vec3 vertex_position;
 in vec3 vertex_normal;
 in vec2 vertex_texcoord;
 
+uniform int num_lights;
+uniform vec3 light_positions[MAX_NUM_LIGHTS];
+uniform vec3 light_colors[MAX_NUM_LIGHTS];
 uniform vec3 light_ambient;
-uniform vec3 light_position;
-uniform vec3 light_color;
 uniform vec3 camera_position;
 uniform float material_shininess;
 uniform vec2 texture_scale;
@@ -33,13 +36,13 @@ void main() {
     vec3 world_vertex_position = (model_matrix * vec4(vertex_position, 1.0)).xyz;
 
     vec3 N = normalize(world_vertex_normal);                      // normalized surface normal
-    vec3 L = normalize(light_position - world_vertex_position);   // normalized light direction
+    vec3 L = normalize(light_positions[0] - world_vertex_position);   // normalized light direction
 
     vec3 R = normalize(-(reflect(L,N)));          // normalized reflected light direction
     vec3 V = normalize(camera_position - world_vertex_position);  // normalized view direction // i swapped order of subtraction
 
 
     ambient = light_ambient;
-    diffuse = light_color * dotPositive(N, L);
-    specular = light_color * pow(dotPositive(R,V), material_shininess);
+    diffuse = light_colors[0] * dotPositive(N, L);
+    specular = light_colors[0] * pow(dotPositive(R,V), material_shininess);
 }

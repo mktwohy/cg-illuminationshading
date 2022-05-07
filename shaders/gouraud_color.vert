@@ -1,6 +1,7 @@
 #version 300 es
 
 #define MAX_NUM_LIGHTS 10       // arrays need to have constant sizes for indexing
+
 precision highp float;
 
 in vec3 vertex_position;
