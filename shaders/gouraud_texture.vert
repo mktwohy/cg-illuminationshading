@@ -42,10 +42,17 @@ void main() {
         vec3 R = normalize(-(reflect(L,N)));          // normalized reflected light direction
         vec3 V = normalize(camera_position - world_vertex_position);  // normalized view direction // i swapped order of subtraction
 
+         // and distance would probably be
+        float dist = length(light_positions[i]-world_vertex_position);
 
-        ambient += light_ambient;
-        diffuse += light_colors[i] * dotPositive(N, L);
-        specular += light_colors[i] * pow(dotPositive(R,V), material_shininess);
+        // so attenuation would be
+        float att = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);// use clamp() here instead. this constrains a value to lie between two further values
+
+
+
+        ambient += light_ambient * att;
+        diffuse += light_colors[i] * dotPositive(N, L) * att;
+        specular += light_colors[i] * pow(dotPositive(R,V), material_shininess) * att;
     }
 
 }

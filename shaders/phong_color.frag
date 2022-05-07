@@ -26,7 +26,7 @@ float dotPositive(vec3 x, vec3 y) {
 void main() {
     //vec3 ambient; // ambient is the same regardless of lights, so it goes outside of loop
     vec3 ambient = light_ambient * material_color;
-    vec3 result = vec3(0.0);
+    vec3 result;
    //vec3 diffuse;
     //vec3 specular;
     
@@ -59,7 +59,7 @@ void main() {
     float dist = length(light_positions[i]-frag_pos);
 
     // so attenuation would be
-    float att = clamp(1.0/dist, 0.0, 1.0);//1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);
+    float att = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);
 
 
 

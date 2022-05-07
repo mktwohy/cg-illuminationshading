@@ -84,7 +84,7 @@ void main() {
     float dist = length(light_positions[i]-frag_pos);
 
     // so attenuation would be
-    float att = clamp(1.0/dist, 0.0, 1.0);// use clamp() here instead. this constrains a value to lie between two further values
+    float att = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);// use clamp() here instead. this constrains a value to lie between two further values
 
 
 

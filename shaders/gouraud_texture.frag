@@ -22,5 +22,5 @@ void main() { // might need to change this from color???
 
     vec3 result = ambient_light + diffuse_light + specular_light;
     //FragColor = vec4(result, 1.0); // which one?
-    FragColor = vec4(result, 1.0) * texel; // which one?
+    FragColor = vec4(result, 1.0); // which one?
 }
