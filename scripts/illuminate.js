@@ -332,7 +332,7 @@ class GlApp {
         console.log(shader.uniforms)
 
         for (let i = 0; i < lights.length; i++ ) {
-            let uniform_position    = this.gl.getUniformLocation(shader.program, "light_position["+i+"]")
+            let uniform_position    = this.gl.getUniformLocation(shader.program, "light_positions["+i+"]")
             let uniform_color       = this.gl.getUniformLocation(shader.program, "light_colors["+i+"]")
             this.gl.uniform3fv(uniform_position, lights[i].position);
             this.gl.uniform3fv(uniform_color, lights[i].color);
