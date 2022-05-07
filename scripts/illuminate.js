@@ -328,10 +328,17 @@ class GlApp {
 
     /** Note - must be called inside a gl.useProgram() block */
     uploadLightCameraUniforms(shader) {
-        let point_light = this.scene.light.point_lights[0]  // todo this is temporary and arbitrary; maybe loop through all point lights?
+        let lights = this.scene.light.point_lights
+        console.log(shader.uniforms)
+
+        for (let i = 0; i < lights.length; i++ ) {
+            let uniform_position    = this.gl.getUniformLocation(shader.program, "light_position["+i+"]")
+            let uniform_color       = this.gl.getUniformLocation(shader.program, "light_colors["+i+"]")
+            this.gl.uniform3fv(uniform_position, lights[i].position);
+            this.gl.uniform3fv(uniform_color, lights[i].color);
+        }
+        this.gl.uniform1i(shader.uniforms.num_lights, this.scene.light.point_lights.length);
         this.gl.uniform3fv(shader.uniforms.light_ambient, this.scene.light.ambient);
-        this.gl.uniform3fv(shader.uniforms.light_position, point_light.position);
-        this.gl.uniform3fv(shader.uniforms.light_color, point_light.color);
         this.gl.uniform3fv(shader.uniforms.camera_position, this.scene.camera.position);
     }
 
