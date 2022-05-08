@@ -42,10 +42,25 @@
             "material": {
                 "color": [0.392, 0.176, 0.569],
                 "specular": [1.0, 1.0, 1.0],
-                "shininess": 4
+                "shininess": 1.0
             },
-            "center": [2.0, 1.5, 1.0],
+            "center": [2.0, 2.5, 1.0],
             "size": [1.0, 1.0, 1.0]
+        },
+        {
+            "type": "custom",
+            "shader": "texture",
+            "material": {
+                "color": [1.0, 1.0, 1.0, 1.0],
+                "specular": [1.0, 1.0, 1.0],
+                "shininess": 1.0
+            },
+            "texture": {
+                "url": "images/Checkered.jpg",
+                "scale": [3.0, 3.0]
+            },
+            "center": [-1.0, 2.0, 2.0],
+            "size": [3.0, 3.0, 3.0]
         }
     ],
     "light": {

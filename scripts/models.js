@@ -290,55 +290,76 @@ function createSphereVertexArray(gl, position_attrib, normal_attrib, texcoord_at
     )
 }
 
-// TODO: create a custom 3D model (minimum of 16 vertices)
-
 function createCustomVertexArray(gl, position_attrib, normal_attrib, texcoord_attrib) {
-    return null
+    let center = { x: 0.0, y: 0.0, z: 0.0 }
+    let model = createHexagon(0.5, center, false)
 
-    // todo implement functions, then delete the line above
     return createGenericVertexArray(
         gl,
         position_attrib,
         normal_attrib,
         texcoord_attrib,
-        generateHexagonalPrismVertices(0.5, 0.0, 0.0),
-        generateHexagonalPrismNormals(),
-        generateHexagonalPrismTexcoords(),
-        generateHexagonalPrismIndices()
+        model.vertices,
+        model.normals,
+        model.texcoords,
+        model.indices
     )
 }
 
-/**
- * Generates vertices for hexagonal prism in the following order:
- * - vertices from bottom hexagon are added, then from top.
- * - vertices in each hexagon are added clockwise, starting at angle = 30 degrees
- *
- * inspired by [link](https://www.redblobgames.com/grids/hexagons/)
- */
+function createHexagon(radius, center, flip_normal) {
+    // partially inspired by [link](https://www.redblobgames.com/grids/hexagons/)
 
-function generateHexagonalPrismVertices(radius, z_bottom, z_top) {
-    let center = { x: 0.0, y: 0.0 }
-    let points = []
-    for (let z of [z_bottom, z_top]) {
-        for (let angle = 30; angle <= 330; angle += 30) {
-            let angle_rad = Math.PI / 180 * angle
-            let x = center.x + radius * Math.cos(angle_rad)
-            let y = center.y + radius * Math.sin(angle_rad)
-            points.push(x, y, z)
-        }
+    // initialize vertices and normals with the center point
+    let vertices = [center.x, center.y, center.z]
+    let normal_dir = flip_normal ? -1.0 : 1.0
+    let normals = [0.0, normal_dir, 0.0]
+
+    // add the outer points, starting at angle 0 and rotating around clockwise
+    for (let angle = 30; angle <= 360; angle += 60) {
+        let angle_rad = Math.PI / 180 * angle
+        let x = center.x + radius * Math.cos(angle_rad)
+        let z = center.y + radius * Math.sin(angle_rad)
+        vertices.push(x, center.y, z)
+        normals.push(0.0, normal_dir, 0.0)
     }
-    return points
+
+    // indices define 6 triangles that fan around the center
+    let indices = []
+    for (let i = 1; i <= 6; i++) {
+        let next_index = i + 1
+        if (next_index > 6) next_index = 1
+        indices.push(0, i, next_index)
+    }
+
+    return {
+        vertices: vertices,
+        normals: normals,
+        texcoords: verticesToTexcoords(vertices, 1),
+        indices: indices
+    }
 }
 
-function generateHexagonalPrismNormals() {
-    return undefined;
+function verticesToTexcoords(vertices, dimension_to_ignore) {
+    return chunk(vertices, 3)
+        .map(vertexToTexcoord)      // convert to texcoord range
+        .flatMap((texcoord) =>
+            removeAtIndex(texcoord, dimension_to_ignore)
+        )
 }
 
-function generateHexagonalPrismTexcoords() {
-    return undefined;
+function vertexToTexcoord(vertex) {
+    return vertex.map((value) => value * 2 + 1)
 }
 
-function generateHexagonalPrismIndices() {
-    return undefined;
+function removeAtIndex(list, index) {
+    list.splice(index, 1)
+    return list
 }
 
+function chunk(list, chunk_size) {
+    let ret = []
+    for (let i = 0; i < list.length; i += chunk_size) {
+        ret.push(list.slice(i, i + chunk_size))
+    }
+    return ret
+}
