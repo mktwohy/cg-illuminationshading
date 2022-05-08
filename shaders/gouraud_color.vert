@@ -33,6 +33,9 @@ void main() {
     vec3 world_vertex_normal = normalize(mat3(transpose(inverse(model_matrix))) * vertex_normal);
     vec3 world_vertex_position = (model_matrix * vec4(vertex_position, 1.0)).xyz;
 
+    ambient = light_ambient;
+
+
     for (int i = 0; i < num_lights; i++) {
         vec3 N = normalize(world_vertex_normal);                      // normalized surface normal
         vec3 L = normalize(light_positions[i] - world_vertex_position);   // normalized light direction
@@ -52,10 +55,9 @@ void main() {
          // so attenuation would be
         float att = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);
 
-        ambient += light_ambient * att;
         diffuse += light_colors[i] * dotPositive(N, L) * att;
         // diffuse = diffuse + light_color[i] * dotPositive(N,L) * att; // i think att goes in here
-        specular += light_colors[i] * pow(dotPositive(R,V), material_shininess) * att;
+        specular += light_colors[i] * pow(dotPositive(R,V), material_shininess);
         //specular = light_color[i] * pow(dotPositive(R,V), material_shininess) * att; // i think att goes in here
     }
 }

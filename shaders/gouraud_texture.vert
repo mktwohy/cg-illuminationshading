@@ -30,7 +30,6 @@ float dotPositive(vec3 x, vec3 y) {
 
 void main() {
     gl_Position = projection_matrix * view_matrix * model_matrix * vec4(vertex_position, 1.0);
-    frag_texcoord = vertex_texcoord * texture_scale;
 
     for (int i = 0; i < num_lights; i++) {
         vec3 world_vertex_normal = normalize(mat3(transpose(inverse(model_matrix))) * vertex_normal);
@@ -50,9 +49,12 @@ void main() {
 
 
 
-        ambient += light_ambient * att;
+        ambient += light_ambient;
         diffuse += light_colors[i] * dotPositive(N, L) * att;
         specular += light_colors[i] * pow(dotPositive(R,V), material_shininess) * att;
     }
+
+    frag_texcoord = vertex_texcoord * texture_scale;
+
 
 }
