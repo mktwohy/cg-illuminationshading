@@ -35,19 +35,14 @@ void main() {
         vec3 world_vertex_normal = normalize(mat3(transpose(inverse(model_matrix))) * vertex_normal);
         vec3 world_vertex_position = (model_matrix * vec4(vertex_position, 1.0)).xyz;
 
-        vec3 N = normalize(world_vertex_normal);                      // normalized surface normal
-        vec3 L = normalize(light_positions[i] - world_vertex_position);   // normalized light direction
+        vec3 N = normalize(world_vertex_normal);                        // normalized surface normal
+        vec3 L = normalize(light_positions[i] - world_vertex_position); // normalized light direction
 
-        vec3 R = normalize(-(reflect(L,N)));          // normalized reflected light direction
-        vec3 V = normalize(camera_position - world_vertex_position);  // normalized view direction // i swapped order of subtraction
+        vec3 R = normalize(-(reflect(L,N)));                            // normalized reflected light direction
+        vec3 V = normalize(camera_position - world_vertex_position);    // normalized view direction
 
-         // and distance would probably be
         float dist = length(light_positions[i]-world_vertex_position);
-
-        // so attenuation would be
-        float att = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);// use clamp() here instead. this constrains a value to lie between two further values
-
-
+        float att = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist); // use clamp() here instead. this constrains a value to lie between two further values
 
         ambient += light_ambient;
         diffuse += light_colors[i] * dotPositive(N, L) * att;
@@ -55,6 +50,4 @@ void main() {
     }
 
     frag_texcoord = vertex_texcoord * texture_scale;
-
-
 }

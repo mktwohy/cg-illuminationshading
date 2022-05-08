@@ -132,6 +132,31 @@ class GlApp {
         this.render();
     }
 
+    initializeTexture(image_url) {
+        // create texture
+        let tex_id = this.gl.createTexture();
+
+        // bind TEXTURE_2D to tex_id
+        this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)
+
+        // set TEXTURE_2D parameters
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR_MIPMAP_LINEAR)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT)
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT)
+
+        // download the actual image
+        let image = new Image();
+        image.crossOrigin = 'anonymous';
+        image.addEventListener('load', (event) => {
+            // once image is downloaded, update the texture image
+            this.updateTexture(tex_id, image);
+        }, false);
+        image.src = image_url;
+
+        return tex_id;
+    }
+
     createDefaultTexture(color) {
         // (from PowerPoint 14 slide 9)
         let tex_id = this.gl.createTexture();
@@ -156,37 +181,7 @@ class GlApp {
         return tex_id
     }
 
-    initializeTexture(image_url) {
-        // create texture
-        let tex_id = this.gl.createTexture();
-
-        // bind TEXTURE_2D to tex_id
-        this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)
-
-        // set TEXTURE_2D parameters
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR_MIPMAP_LINEAR)
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR)
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT)
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT)
-
-        // upload 1x1 white texture to TEXTURE_2D
-        // let white_texture = Uint8Array.from(color)
-        // this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, white_texture);
-
-        // download the actual image
-        let image = new Image();
-        image.crossOrigin = 'anonymous';
-        image.addEventListener('load', (event) => {
-            // once image is downloaded, update the texture image
-            this.updateTexture(tex_id, image);
-        }, false);
-        image.src = image_url;
-
-        return tex_id;
-    }
-
     updateTexture(tex_id, image_element) {
-        console.log("updateTexture")
         // bind TEXTURE_2D to tex_id
         this.gl.bindTexture(this.gl.TEXTURE_2D, tex_id)
 
@@ -217,13 +212,10 @@ class GlApp {
         let texture_shader  = this.getSelectedTextureShader()
         let light_shader    = this.getEmissiveShader()
 
-        // draw all models
         for (let model of this.scene.models) {
-            if (this.vertex_array[model.type] == null) continue;
             this.drawModel(model, color_shader, texture_shader)
         }
 
-        // draw all light sources
         for (let point_light of this.scene.light.point_lights) {
             this.drawPointLight(point_light, light_shader)
         }
@@ -250,6 +242,8 @@ class GlApp {
     }
 
     drawModel(model, color_shader, texture_shader) {
+        if (this.vertex_array[model.type] == null) return
+
         // transform model to proper position, size, and orientation
         glMatrix.mat4.identity(this.model_matrix);
         glMatrix.mat4.translate(this.model_matrix, this.model_matrix, model.center);
@@ -263,7 +257,6 @@ class GlApp {
                 this.drawModelMaterial(model, color_shader)
                 break
             case 'texture':
-
                 this.drawModelTexture(model, texture_shader)
                 break
             default:
@@ -329,7 +322,6 @@ class GlApp {
     /** Note - must be called inside a gl.useProgram() block */
     uploadLightCameraUniforms(shader) {
         let lights = this.scene.light.point_lights
-        console.log(shader.uniforms)
 
         for (let i = 0; i < lights.length; i++ ) {
             let uniform_position    = this.gl.getUniformLocation(shader.program, "light_positions["+i+"]")
